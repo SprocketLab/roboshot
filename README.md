@@ -2,7 +2,7 @@
 
 This repository contains the code implimentation of RoboShot (paper: Zero-Shot Robustification of Zero-Shot Models With Auxiliary Foundation Models).
 
-<div style="width: 60%; height: 60%">
+<div style="width: 50%; height: 50%">
   
   ![](figs/main_diagram.jpg)
   

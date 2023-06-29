@@ -107,11 +107,9 @@ def evaluate(dataset_name, preds, test_Y, logits):
         const.CELEBA_NAME: eval_wilds,
         const.PACS_NAME: eval_domainbed,
         const.VLCS_NAME: eval_domainbed,
-        const.SD_CATDOG_NAME: eval_synthetic,
-        const.SD_NURSE_FIREFIGHTER_NAME: eval_synthetic,
         const.CXR_NAME: eval_cxr,
     }
-    if dataset_name not in [const.IMAGENETS_NAME, const.CXR_NAME, const.PACS_NAME, const.BREEDS17_NAME, const.BREEDS26_NAME, const.VLCS_NAME]:
+    if dataset_name not in [const.CXR_NAME, const.PACS_NAME, const.VLCS_NAME]:
         eval_func[dataset_name](preds, test_Y)
     else:
         eval_func[dataset_name](preds, test_Y, logits)

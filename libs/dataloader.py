@@ -494,14 +494,9 @@ class MultiEnvDataset:
             [transforms.Resize((448,448)), transforms.ToTensor()])
         self.dataset_dict = {
             const.WATERBIRDS_NAME: WaterbirdsDataset,
-            const.CMNIST_NAME: ColoredMNISTDataset,
             const.CELEBA_NAME: CelebADataset,
             const.PACS_NAME: PACSDataset,
-            const.SD_CATDOG_NAME: CatDogDataset,
-            const.SD_NURSE_FIREFIGHTER_NAME: NurseFirefighterDataset,
             const.CXR_NAME: CXR14Dataset,
-            const.BREEDS17_NAME: BreedsLiving17Dataset,
-            const.BREEDS26_NAME: BreedsNonliving26Dataset,
             const.CIVILCOMMENTS_NAME: CivilCommentsDataset,
             const.HATEXPLAIN_NAME: HateXplainDataset,
             const.AMAZON_NAME: AmazonDataset,

@@ -103,13 +103,6 @@ text_prompts = {
         'forbidden_words': None
         # ['bird', 'car', 'chair', 'dog', 'person'],
     },
-    const.SD_NURSE_FIREFIGHTER_NAME: {
-        'question': 'List the biased differences between firefighter and nurse. Give short keywords for each item. Answer in the following format: <Difference>: <Firefighter characteristic> ; <Nurse characteristic>',
-        'labels_pure': ['nurse', 'firefighter'],
-        'labels': ['nurse', 'firefighter'],
-        'forbidden_key': None,
-        'prompt_template': 'a person with',
-    },
     const.CXR_NAME: {
         'question': 'List the core differences between chest X-ray of person with pneumothorax and without pneumothorax. Give short keywords for each item. Answer in the following format: <Difference>: <pneumothorax characteristic> ; <no pneumothorax characteristic>',
         'labels_pure': ['non-pneumothorax', 'pneumothorax'],
