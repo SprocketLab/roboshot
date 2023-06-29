@@ -1,12 +1,12 @@
 import sys
-sys.path.insert(0, '../')
-from api_key import API_KEY
+sys.path.insert(0, '../../')
+from utils.api_key import API_KEY
 
 import openai
 openai.api_key = API_KEY
 
-from text_prompts import text_prompts
-import const
+from libs.text_prompts import text_prompts
+import utils.const as const
 
 import argparse
 from tqdm import tqdm

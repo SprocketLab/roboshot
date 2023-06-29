@@ -1,6 +1,6 @@
 import sys
-sys.path.insert(0, '../')
-from sys_const import DATA_DIR
+sys.path.insert(0, '../../')
+from utils.sys_const import DATA_DIR
 
 from torch.utils.data import DataLoader, Dataset, ConcatDataset
 import torch
@@ -16,7 +16,7 @@ from PIL import Image, ImageFile
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-import comnivore.const as const
+import utils.const as const
 
 from datasets import load_dataset
 

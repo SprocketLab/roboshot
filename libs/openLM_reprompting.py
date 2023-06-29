@@ -1,6 +1,6 @@
 import sys
-sys.path.insert(0, '../')
-from text_prompts import text_prompts
+sys.path.insert(0, '../../')
+from libs.text_prompts import text_prompts
 
 import re
 import argparse
@@ -9,8 +9,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, GPT2LMHeadModel
 from transformers import LlamaForCausalLM, LlamaTokenizer
 
 import numpy as np
-
-import const
+import utils.const as const
 
 SUPPORTED_MODEL = [const.T5_NAME, const.GPT2_NAME, const.LLAMA_NAME]
 

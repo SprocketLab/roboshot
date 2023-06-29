@@ -1,6 +1,5 @@
-from sys_const import ROOT_DIR
 import sys
-sys.path.insert(0, '../')
+sys.path.insert(0, '../../')
 
 import torch
 import open_clip
@@ -12,13 +11,8 @@ from transformers import AltCLIPModel, AltCLIPProcessor
 from tqdm import tqdm
 import numpy as np
 
-import sys
-sys.path.insert(0, '/home/dyah/comnivore_revived')
-
-from shared.utils import *
-from comnivore.dataloader import MultiEnvDataset
-
-import comnivore.const as const
+from libs.dataloader import MultiEnvDataset
+import utils.const as const
 
 from transformers.utils import logging
 logging.set_verbosity(40)

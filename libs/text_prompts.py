@@ -1,45 +1,5 @@
-import const
-from dataloader import MultiEnvDataset
+import utils.const as const
 
-breeds17_labels = MultiEnvDataset().dataset_dict[const.BREEDS17_NAME]().get_labels()
-breeds26_labels = MultiEnvDataset().dataset_dict[const.BREEDS26_NAME]().get_labels()
-
-def get_breeds_question(labels):
-    prompt = 'List spurious stereotype of: '
-    for i, label_ in enumerate(labels):
-        label_ = label_.lower()
-        if ',' in label_:
-            label_ = label_.split(',')[0]
-        prompt += label_
-        if i < len(labels)-1:
-            prompt += ', '
-        else:
-            prompt += ', '
-    # prompt = 'List the confusing similarities between dog, cat, wolf, and fox. Then list the confusing similarities between ape and monkey. Then list the confusing similarities between grouse and parrot.  Then list the confusing similarities between salamander, lizard, and snake. Then list the confusing similarities between spider and beetle. '
-    # prompt = 'List the special physical attributes of dog, cat, wolf, and fox. Then list the special physical attributes of ape and monkey. Then list the special physical attributes of grouse and parrot.  Then list the special physical attributes of salamander, lizard, and snake. Then list the special physical attributes of spider and beetle. '
-    prompt+= 'Give one unique answer for each item.'
-    return prompt
-
-def get_breeds26_question(labels):
-    prompt = 'List the confusing similarities of '
-    for i, label_ in enumerate(labels):
-        label_ = label_.lower()
-        if ',' in label_:
-            label_ = label_.split(',')[0]
-        prompt += label_
-        if i < len(labels)-1:
-            prompt += ', '
-        else:
-            prompt += '. '
-    prompt+= 'Give two keywords for each item.'
-    return prompt
-def get_breeds_forbidden_words(labels):
-    forbidden_words = []
-    for i, label_ in enumerate(labels):
-        label_split = label_.lower().split(', ')
-        forbidden_words.extend(label_split)
-    return forbidden_words
-    
 text_prompts = {
     const.WATERBIRDS_NAME: {
         'question_openLM': [
@@ -157,19 +117,4 @@ text_prompts = {
         'forbidden_key': [],
         'prompt_template': '',
     },
-    const.BREEDS17_NAME: {
-        'question': get_breeds_question(breeds17_labels),
-        'labels_pure': get_breeds_forbidden_words(breeds17_labels),
-        'labels': get_breeds_forbidden_words(breeds17_labels),
-        'forbidden_key': get_breeds_forbidden_words(breeds17_labels),
-        'forbidden_words': get_breeds_forbidden_words(breeds17_labels),
-        'prompt_template': '',
-    },
-    const.BREEDS26_NAME: {
-        'question': get_breeds26_question(breeds26_labels),
-        'labels_pure': breeds26_labels,
-        'labels': breeds26_labels,
-        'forbidden_key': get_breeds_forbidden_words(breeds26_labels),
-        'prompt_template': '',
-    }
 }

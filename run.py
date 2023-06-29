@@ -8,16 +8,16 @@ import torch
 
 from wilds import get_dataset
 
-from dataloader import MultiEnvDataset
-from get_clip_text_emb import get_text_embedding
-from chatgpt_reprompting import get_z_prompts
-from openLM_reprompting import get_z_prompts_openLM
-import const
-from tqdm import tqdm
+from libs.dataloader import MultiEnvDataset
+from libs.get_clip_text_emb import get_text_embedding
+from libs.chatgpt_reprompting import get_z_prompts
+from libs.openLM_reprompting import get_z_prompts_openLM
+import utils.const as const
+from libs.text_prompts import text_prompts
 
+from tqdm import tqdm
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.metrics.pairwise import cosine_similarity
-from text_prompts import text_prompts
 
 def eval_wilds(preds, test_Y):
     if not torch.is_tensor(test_Y):
@@ -150,8 +150,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='run CLIP zero shot')
     parser.add_argument('-d', '--dataset', type=str, required=True)
     parser.add_argument('-clip', '--clip_model', type=str, default='openclip_vitl14')
-    parser.add_argument('-lm', '--llm', stype=str, default='chatgpt')
-    parset.add_argument('-reuse', '--reuse_cached_lm_output', type=bool, default=True)
+    parser.add_argument('-lm', '--llm', type=str, default='chatgpt')
+    parser.add_argument('-reuse', '--reuse_cached_lm_output', type=bool, default=True)
     args = parser.parse_args()
     
     dataset_name = args.dataset
@@ -161,6 +161,7 @@ if __name__ == '__main__':
 
     assert clip_model in const.SUPPORTED_CLIP
     assert llm_model in const.SUPPORTED_LM
+
 
     labels = text_prompts[dataset_name]['labels']
     max_tokens = 100
