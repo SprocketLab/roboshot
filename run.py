@@ -162,11 +162,9 @@ if __name__ == '__main__':
     assert clip_model in const.SUPPORTED_CLIP
     assert llm_model in const.SUPPORTED_LM
 
-
     labels = text_prompts[dataset_name]['labels']
     max_tokens = 100
     n_paraphrases = 0
-
 
     # z_all = get_z_prompts_openLM(dataset_name, model_name=const.GPT2_NAME)
     # differences = z_all[0]
