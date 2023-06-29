@@ -1,7 +1,8 @@
 utils/api_key.py
-utils/__pycache__
 
+utils/__pycache__
 libs/__pycache__/
+libs/feature_extractor/__pycache__/
 
 .ipynb_checkpoints/
 *.npy

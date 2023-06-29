@@ -12,9 +12,10 @@ from libs.dataloader import MultiEnvDataset
 from libs.get_clip_text_emb import get_text_embedding
 from libs.chatgpt_reprompting import get_z_prompts
 from libs.openLM_reprompting import get_z_prompts_openLM
-import utils.const as const
 from libs.text_prompts import text_prompts
 from libs.cached_concepts import get_cached_concept
+from libs.feature_extractor import hf_extractor, openclip_extractor
+import utils.const as const
 
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score
@@ -30,7 +31,6 @@ def eval_wilds(preds, test_Y):
     return results_str
 
 def eval_domainbed(y_pred, y_true, logits):
-    print('ALL', len(logits))
     if torch.is_tensor(y_pred):
         y_pred = y_pred.detach().cpu().numpy()
     if torch.is_tensor(y_true):
@@ -56,7 +56,6 @@ def eval_domainbed(y_pred, y_true, logits):
     print('\n')
     
 def eval_cxr(y_pred, y_true, logits):
-    print('ALL', len(logits))
     if torch.is_tensor(logits):
         logits = logits.detach().cpu().numpy()
     if torch.is_tensor(y_pred):
@@ -111,8 +110,6 @@ def evaluate(dataset_name, preds, test_Y, logits):
         const.SD_CATDOG_NAME: eval_synthetic,
         const.SD_NURSE_FIREFIGHTER_NAME: eval_synthetic,
         const.CXR_NAME: eval_cxr,
-        const.BREEDS17_NAME: eval_domainbed,
-        const.BREEDS26_NAME: eval_domainbed,
     }
     if dataset_name not in [const.IMAGENETS_NAME, const.CXR_NAME, const.PACS_NAME, const.BREEDS17_NAME, const.BREEDS26_NAME, const.VLCS_NAME]:
         eval_func[dataset_name](preds, test_Y)
@@ -143,120 +140,116 @@ if __name__ == '__main__':
         z_reject, z_accept = get_cached_concept(dataset_name)
 
     labels_text = MultiEnvDataset().dataset_dict[dataset_name]().get_labels()
-    dir_dict = {
-        # const.CLIP_ALIGN_NAME: f'../{dataset_name}_features/features_gt_ALIGN/',
-        # const.CLIP_BASE_NAME: f'../{dataset_name}_features/features_gt/',
-        # const.CLIP_ALT_NAME: f'../{dataset_name}_features/features_gt_alt/',
-        # const.CLIP_BIOMED_NAME: f'../{dataset_name}_features/features_gt/',
-        # const.CLIP_OPEN_VITL14: f'../{dataset_name}_features/features_openclip_vitL14/',
-        const.CLIP_OPEN_VITB32: f'../{dataset_name}_features/features_openclip_vitB32/',
-        # const.CLIP_OPEN_VITH14: f'../{dataset_name}_feature÷s/features_openclip_vitH14/',
-        # const.CLIP_OPEN_RN50: f'../{dataset_name}_features/features_openclip_rn50/',
-    }
+    load_dir = f'features/{dataset_name}/{clip_model}'
 
-    for key in dir_dict:
-        load_dir = dir_dict[key]
-        reject_emb = []
-        accept_emb = []
+    cached_features = False
+    if os.path.isdir(load_dir):
+        if len(os.listdir(load_dir)):
+            cached_features = True
 
-        print(f'CLIP MODEL = {key}')
-        test_X = np.load(os.path.join(load_dir, 'image_emb.npy'))
-        test_Y = np.load(os.path.join(load_dir, 'y.npy'))
+    if not cached_features:
+        print(f"extracting CLIP features...")
+        if clip_model in const.HF_CLIP:
+            hf_extractor(dataset_name, clip_model)
+        elif clip_model in const.OPEN_CLIP:
+            openclip_extractor(dataset_name, clip_model)
+    
+    print(f'CLIP MODEL = {clip_model}')
+    test_X = np.load(os.path.join(load_dir, 'image_emb.npy'))
+    test_Y = np.load(os.path.join(load_dir, 'y.npy'))
 
-        label_emb = get_text_embedding(labels_text, model_name=key)
-        preds, logits = make_clip_preds(test_X, label_emb)
-        print("========= Baseline (ZS) =========")
+    label_emb = get_text_embedding(labels_text, model_name=clip_model)
+    preds, logits = make_clip_preds(test_X, label_emb)
+    print("========= Baseline (ZS) =========")
+    evaluate(dataset_name, preds, test_Y, logits)
+    
+    if dataset_name in [const.WATERBIRDS_NAME, const.CELEBA_NAME, const.PACS_NAME]:
+        print("========= Baseline (Group Prompt) =========")
+        group_prompt = MultiEnvDataset().dataset_dict[dataset_name]().get_group_prompts()
+        group_prompt_emb = get_text_embedding(group_prompt, model_name=clip_model)
+        preds, logits = make_clip_preds(test_X, group_prompt_emb)
+        if dataset_name == const.PACS_NAME:
+            group_prompt_preds_multi(preds, len(group_prompt), 4, 7)
+        else:
+            preds = group_prompt_preds(preds)
         evaluate(dataset_name, preds, test_Y, logits)
-        # exit()
-        if dataset_name in [const.WATERBIRDS_NAME, const.CELEBA_NAME, const.PACS_NAME]:
-            print("========= Baseline (Group Prompt) =========")
-            group_prompt = MultiEnvDataset().dataset_dict[dataset_name]().get_group_prompts()
-            group_prompt_emb = get_text_embedding(group_prompt, model_name=key)
-            preds, logits = make_clip_preds(test_X, group_prompt_emb)
-            if dataset_name == const.PACS_NAME:
-                group_prompt_preds_multi(preds, len(group_prompt), 4, 7)
-            else:
-                preds = group_prompt_preds(preds)
-            evaluate(dataset_name, preds, test_Y, logits)
-        # exit()
-        for prompt in tqdm(z_reject):
-            emb = get_text_embedding(prompt, model_name=key)
-            reject_emb.append(emb)
-        
-        for prompt in tqdm(z_accept):
-            emb = get_text_embedding(prompt, model_name=key)
-            accept_emb.append(emb)
 
-        test_Y = torch.Tensor(test_Y)
-        reject_emb_all = np.array(reject_emb)
-        accept_emb_all = np.array(accept_emb)
-        print(reject_emb_all.shape)
-        print(accept_emb_all.shape)
+    reject_emb = []
+    accept_emb = []
+    for prompt in tqdm(z_reject):
+        emb = get_text_embedding(prompt, model_name=clip_model)
+        reject_emb.append(emb)
+    
+    for prompt in tqdm(z_accept):
+        emb = get_text_embedding(prompt, model_name=clip_model)
+        accept_emb.append(emb)
 
+    test_Y = torch.Tensor(test_Y)
+    reject_emb_all = np.array(reject_emb)
+    accept_emb_all = np.array(accept_emb)
 
-        # --------- Rejecting all spurious directions ------------
-        spurious_vectors = reject_emb_all[:, 0, :] - reject_emb_all[:, 1, :]
-        q_spurious, r = np.linalg.qr(spurious_vectors.T)
-        q_spurious = q_spurious.T
-        
-        # Transform X so that so that it is orthogonal to all spurious directions
-        test_proj = np.copy(test_X)
+    # --------- Rejecting all spurious directions ------------
+    spurious_vectors = reject_emb_all[:, 0, :] - reject_emb_all[:, 1, :]
+    q_spurious, r = np.linalg.qr(spurious_vectors.T)
+    q_spurious = q_spurious.T
+    
+    # Transform X so that so that it is orthogonal to all spurious directions
+    test_proj = np.copy(test_X)
+    test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
+
+    # Reject projections to those orthonormal vectors
+    for orthonormal_vector in q_spurious:
+        cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
+        rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
+        test_proj = test_proj - rejection_features
+        test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
+    
+    test_proj = torch.Tensor(test_proj)
+    label_emb = torch.Tensor(label_emb)
+    preds, logits = make_clip_preds(test_proj, label_emb)
+    print("========= ROBOSHOT W/ QR Rejection =========")
+    evaluate(dataset_name, preds, test_Y, logits)
+
+    # --------- Accepting all true directions ------------
+    true_vectors = accept_emb_all[:, 0, :] - accept_emb_all[:, 1, :]
+    q_true, r = np.linalg.qr(true_vectors.T)
+    q_true = q_true.T
+    
+    # Transform X so that so that it is orthogonal to all spurious directions
+    test_proj = np.copy(test_X)
+    test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
+
+    # Reject projections to those orthonormal vectors
+    for orthonormal_vector in q_true:
+        cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
+        rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
+        test_proj = test_proj + rejection_features
+        test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
+    
+    test_proj = torch.Tensor(test_proj)
+    label_emb = torch.Tensor(label_emb)
+    preds, logits = make_clip_preds(test_proj, label_emb)
+    print("========= ROBOSHOT W/ QR Accept =========")
+    evaluate(dataset_name, preds, test_Y, logits)
+
+    # --------- COMBINED ------------
+    test_proj = np.copy(test_X)
+    test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
+
+    for orthonormal_vector in q_spurious:
+        cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
+        rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
+        test_proj = test_proj - rejection_features
+        test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
+    
+    for orthonormal_vector in q_true:
+        cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
+        rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
+        test_proj = test_proj + rejection_features
         test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
 
-        # Reject projections to those orthonormal vectors
-        for orthonormal_vector in q_spurious:
-            cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
-            rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
-            test_proj = test_proj - rejection_features
-            test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
-        
-        test_proj = torch.Tensor(test_proj)
-        label_emb = torch.Tensor(label_emb)
-        preds, logits = make_clip_preds(test_proj, label_emb)
-        print("========= OURS W/ QR Rejection =========")
-        evaluate(dataset_name, preds, test_Y, logits)
-
-        # --------- Accepting all true directions ------------
-        true_vectors = accept_emb_all[:, 0, :] - accept_emb_all[:, 1, :]
-        q_true, r = np.linalg.qr(true_vectors.T)
-        q_true = q_true.T
-        
-        # Transform X so that so that it is orthogonal to all spurious directions
-        test_proj = np.copy(test_X)
-        test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
-
-        # Reject projections to those orthonormal vectors
-        for orthonormal_vector in q_true:
-            cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
-            rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
-            test_proj = test_proj + rejection_features
-            test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
-        
-        test_proj = torch.Tensor(test_proj)
-        label_emb = torch.Tensor(label_emb)
-        preds, logits = make_clip_preds(test_proj, label_emb)
-        print("========= OURS W/ QR Accept =========")
-        evaluate(dataset_name, preds, test_Y, logits)
-
-        # --------- COMBINED ------------
-        test_proj = np.copy(test_X)
-        test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
-
-        for orthonormal_vector in q_spurious:
-            cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
-            rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
-            test_proj = test_proj - rejection_features
-            test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
-        
-        for orthonormal_vector in q_true:
-            cos = np.squeeze(cosine_similarity(test_proj, orthonormal_vector.reshape(1, -1)))
-            rejection_features = cos.reshape(-1, 1) * np.repeat(orthonormal_vector.reshape(1, -1), cos.shape[0], axis=0) / np.linalg.norm(orthonormal_vector)
-            test_proj = test_proj + rejection_features
-            test_proj = test_proj / np.linalg.norm(test_proj, axis=1).reshape(-1, 1)
-
-        test_proj = torch.Tensor(test_proj)
-        label_emb = torch.Tensor(label_emb)
-        preds, logits = make_clip_preds(test_proj, label_emb)
-        print("========= OURS W/ BOTH =========")
-        evaluate(dataset_name, preds, test_Y, logits)
-   
+    test_proj = torch.Tensor(test_proj)
+    label_emb = torch.Tensor(label_emb)
+    preds, logits = make_clip_preds(test_proj, label_emb)
+    print("========= ROBOSHOT W/ BOTH =========")
+    evaluate(dataset_name, preds, test_Y, logits)

@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '../')
+sys.path.insert(0, '../../')
 
 import torch
 
@@ -11,50 +11,33 @@ from transformers import AltCLIPModel, AltCLIPProcessor
 
 from tqdm import tqdm
 import numpy as np
-
 import os
-import argparse
 
-from shared.utils import *
-from dataloader import MultiEnvDataset
+from libs.dataloader import MultiEnvDataset
+import utils.const as const
 
-torch.cuda.set_device(1)
-
-import const
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# CLIP image - text model
-# clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-# clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+def get_model(model_name):
+    if modesl_name == const.CLIP_BASE_NAME:
+        clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+        clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    elif model_name == const.CLIP_ALIGN_NAME:
+        clip_processor = AlignProcessor.from_pretrained("kakaobrain/align-base")
+        clip_model = AlignModel.from_pretrained("kakaobrain/align-base")
+    elif model_name == const.CLIP_ALT_NAME:
+        clip_model = AltCLIPModel.from_pretrained("BAAI/AltCLIP")
+        clip_processor = AltCLIPProcessor.from_pretrained("BAAI/AltCLIP")
+    return clip_model, clip_processor
 
-# clip_processor = AlignProcessor.from_pretrained("kakaobrain/align-base")
-# clip_model = AlignModel.from_pretrained("kakaobrain/align-base")
-
-# clip_model = FlavaModel.from_pretrained("facebook/flava-full")
-# clip_processor = AutoProcessor.from_pretrained("facebook/flava-full")
-
-# clip_processor = AutoProcessor.from_pretrained("microsoft/git-base")
-# clip_model = AutoModel.from_pretrained("microsoft/git-base")
-
-clip_model = AltCLIPModel.from_pretrained("BAAI/AltCLIP")
-clip_processor = AltCLIPProcessor.from_pretrained("BAAI/AltCLIP")
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='run CLIP zero shot')
-    parser.add_argument('-d', '--dataset', type=str, required=True)
-    parser.add_argument('-bs', '--batch_size', type=int, default=16)
-    args = parser.parse_args()
-    
-    dataset_name = args.dataset
+def extract_image_features(dataset_name, model_name, batch_size=32):
     assert dataset_name in const.IMAGE_DATA
-
-    batch_size = args.batch_size
     labels_text = MultiEnvDataset().get_labels(dataset_name)
+    clip_model, clip_processor = get_model(model_name)
 
-    store_dir = f'../{dataset_name}_features/features_gt_alt'
+    store_dir = f'features/{dataset_name}/{model_name}'
     if not os.path.isdir(store_dir):
         os.makedirs(store_dir)
-
     dataloaders = MultiEnvDataset().get_dataloaders(dataset_name, batch_size)
 
     for i, dataloader in enumerate(dataloaders):
@@ -85,11 +68,9 @@ if __name__ == '__main__':
                 y_all.extend(y)
             except Exception as e:
                 # raise e
-                print(j)
                 continue
         
         image_embeddings_all = np.vstack(image_embeddings_all)
-        print('EMBEDDING SHAPE', image_embeddings_all.shape)
         if len(labeled_batch) == 3:
             if len(metadata_all[0].shape) == 1:
                 metadata_all = np.hstack(metadata_all)
@@ -97,13 +78,11 @@ if __name__ == '__main__':
                 metadata_all = np.vstack(metadata_all)
         y_all = np.array(y_all)
 
-        os.makedirs(os.path.join(store_dir, str(i)), exist_ok=True)
-
-        np.save(os.path.join(store_dir, str(i), 'image_emb.npy'), image_embeddings_all)
+        np.save(os.path.join(store_dir, 'image_emb.npy'), image_embeddings_all)
         if len(labeled_batch) == 3:
-            np.save(os.path.join(store_dir, str(i), 'metadata.npy'), metadata_all)
-        np.save(os.path.join(store_dir, str(i), 'y.npy'), y_all)
-        print(f"features etc saved to {os.path.join(store_dir, str(i))}")
+            np.save(os.path.join(store_dir, 'metadata.npy'), metadata_all)
+        np.save(os.path.join(store_dir, 'y.npy'), y_all)
+        print(f"features and metadata saved to {store_dir}")
 
 
 
