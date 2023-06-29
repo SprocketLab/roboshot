@@ -1,14 +1,7 @@
 WATERBIRDS_NAME = 'waterbirds'
 CELEBA_NAME = 'celebA'
-CMNIST_NAME = 'ColoredMNIST'
-FMOW_NAME = 'fmow'
-IMAGENETS_NAME = 'imagenet_sketch'
 PACS_NAME = 'pacs'
-SD_CATDOG_NAME = 'cat_dog'
-SD_NURSE_FIREFIGHTER_NAME = 'nurse_firefighter'
 CXR_NAME = 'cxr'
-BREEDS17_NAME = 'breeds17'
-BREEDS26_NAME = 'breeds26'
 VLCS_NAME = 'vlcs'
 
 IMAGE_DATA=[WATERBIRDS_NAME,CELEBA_NAME,CMNIST_NAME,FMOW_NAME,
