@@ -33,13 +33,14 @@ bash env.sh
     ```bash
     API_KEY = [your API key string here]
     ```
+3. If you wish to use LLaMA, download its weights [here](https://docs.google.com/forms/d/e/1FAIpQLSfqNECQnMkycAp2jP4Z9TFX0cGR4uf7b_fBxjY_OjhJILlKGA/viewform) and follow the instructions from HuggingFace [here](https://huggingface.co/docs/transformers/main/model_doc/llama). Then, tut in the `absolute` path to your LLaMA weights in `utils/sys_const.py` under the `LLAMA_PATH` constant.
 ### Running the code ###
 Now we are ready to run the code!
 ```bash
-python run.py -d=waterbirds
+python run.py -d=waterbirds -reuse
 ```
 Flags:
 - `-d`: select dataset (waterbirds/celebA/pacs/cxr/vlcs)
 - `-clip`: select CLIP model (align/alt/openclip_vitl14/openclip_vitb32/openclip_vith14)
 - `-lm`: select LLM to extract insights (chatgpt/llama/gpt2/flan-t5)
-- `reuse`: whether to reuse the cached ChatGPT output
+- `-reuse`: reuse the cached ChatGPT output

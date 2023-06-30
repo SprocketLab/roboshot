@@ -2,16 +2,16 @@ import utils.const as const
 
 text_prompts = {
     const.WATERBIRDS_NAME: {
-        'question_openLM': [
-                            ['Waterbirds typically ', 'Landbirds typically '],
-                            ['waterbirds usually ', 'landbirds usually '],
-
+        'question_openLM_reject': [['Waterbirds typically ', 'Landbirds typically '],['waterbirds usually ', 'landbirds usually '],],
+        'question_openLM_accept': [
                             ['A characteristic of waterbird: ', 'A characteristic of landbird: '],
                             ['Waterbirds are ', 'Landbirds are '],
                             ['A waterbird is ', 'A landbird is '],
                             ['Characteristics of waterbirds: ', 'Characteristics of landbirds: '],
-                            ],
-        'question_llama': ['List the characteristics of waterbirds: ', 'List the characteristics of landbirds: '],
+        ],
+        'question_llama_accept': ['List the distinguishing differences between waterbirds and landbirds: '],
+        'question_llama_reject': ['List the characteristics of waterbirds: ', 'List the characteristics of landbirds: '],
+
         'question_reject': 'List the spurious differences between waterbirds and landbirds. Give short keyword for each answer. Answer in the following format: <Difference>: <waterbird characteristic> ; <landbird characteristic>',
         'question_accept': 'List the true visual differences between waterbirds and landbirds. Give short keyword for each answer. Answer in the following format: <Difference>: <waterbird characteristic> ; <landbird characteristic>',
         'object': 'bird',
@@ -23,9 +23,8 @@ text_prompts = {
         'forbidden_words': None
     },
     const.CELEBA_NAME: {
-        'question_openLM': [
-                            ['A visual characteristic of blonde hair: ', 'A visual characteristic of dark hair: '],
-                            
+        'question_oepnLM_accept': [['A visual characteristic of blonde hair: ', 'A visual characteristic of dark hair: '],],
+        'question_openLM_reject': [
                             ['A visual characteristic of blonde person: ', 'A visual characteristic of dair haired person: '],
                             ['A person with blonde hair is generally ', 'A person with dark hair is generally '],
                             ['A person with blonde hair is typically ', 'A person with dark hair is typically '],
@@ -43,12 +42,11 @@ text_prompts = {
         'forbidden_words': ['blonde hair', 'dark hair']
     },
     const.PACS_NAME: {
-        'question_openLM': [
+        'question_openLM_accept': [
                             ['A visual characteristic a dog: ', 'A visual characteristic of an elephant: ','A visual characteristic a giraffe: ','A visual characteristic a guitar: ','A visual characteristic a horse: ','A visual characteristic a house: ','A visual characteristic a person: ',],
-                        
-                            ['A dog is typically ', 'An elephant is typically ', 'A giraffe is typically ', 'A guitar is typically ', 'A horse is typically ', 'A house is typically ', 'A person is typically '],
-                            ['Typical characteristic of a dog: ', 'Typical characteristic of an elephant: ', 'Typical characteristic of a giraffe: ',  'Typical characteristic of a guitar: ',  'Typical characteristic of a horse: ', 'Typical characteristic of a house: ', 'Typical characteristic of a person: ',],
                             ],
+        'qeustion_openLM_reject': [['A dog is typically ', 'An elephant is typically ', 'A giraffe is typically ', 'A guitar is typically ', 'A horse is typically ', 'A house is typically ', 'A person is typically '],
+                            ['Typical characteristic of a dog: ', 'Typical characteristic of an elephant: ', 'Typical characteristic of a giraffe: ',  'Typical characteristic of a guitar: ',  'Typical characteristic of a horse: ', 'Typical characteristic of a house: ', 'Typical characteristic of a person: ',],],
         'question_llama': [['List visual characteristics of a dog: ', 
                            'List visual characteristics of an elephant: ',
                            'List visual characteristics of a giraffe: ', 
@@ -76,9 +74,10 @@ text_prompts = {
         # ['dog', 'elephant', 'giraffe', 'guitar', 'horse', 'house', 'person'],
     },
     const.VLCS_NAME: {
-        'question_openLM': [
-                            ['A visual characteristic a bird: ', 'A visual characteristic of a car: ','A visual characteristic a chair: ','A visual characteristic a dog: ','A visual characteristic a person: '],
-                        
+        'qeustion_openLM_accept': [
+             ['A visual characteristic a bird: ', 'A visual characteristic of a car: ','A visual characteristic a chair: ','A visual characteristic a dog: ','A visual characteristic a person: '],
+        ],
+        'question_openLM_reject': [
                             ['A bird is typically ', 'An car is typically ', 'A chair is typically ', 'A dog is typically ', 'A person is typically '],
                             ['Typical characteristic of a bird: ', 'Typical characteristic of an car: ', 'Typical characteristic of a chair: ',  'Typical characteristic of a dog: ',  'Typical characteristic of a person: ',],
                             ],

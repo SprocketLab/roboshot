@@ -119,13 +119,13 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset', type=str, required=True)
     parser.add_argument('-clip', '--clip_model', type=str, default='openclip_vitl14')
     parser.add_argument('-lm', '--llm', type=str, default='chatgpt')
-    parser.add_argument('-reuse', '--reuse_cached_concepts', action='store_true')
+    parser.add_argument('-reuse', '--reuse', action='store_true')
     args = parser.parse_args()
     
     dataset_name = args.dataset
     clip_model = args.clip_model
     llm_model = args.llm
-    reuse_cached_concepts = args.reuse_cached_concepts
+    reuse_cached_concepts = args.reuse
 
     assert clip_model in const.SUPPORTED_CLIP
     assert llm_model in const.SUPPORTED_LM
@@ -133,19 +133,23 @@ if __name__ == '__main__':
     labels = text_prompts[dataset_name]['labels']
     max_tokens = 100
     n_paraphrases = 0
-    print('reuse', reuse_cached_concepts)
     if reuse_cached_concepts == True:
         z_reject, z_accept = get_cached_concept(dataset_name)
     else:
-        print('here', reuse_cached_concepts)
         if llm_model == const.CHATGPT_NAME:
             z_reject = get_z_prompts(dataset_name, text_prompts[dataset_name]['question_reject'])
             z_accept = get_z_prompts(dataset_name, text_prompts[dataset_name]['question_accept'])
-
-    # print(z_reject)
-    # print(z_accept)
-    # exit()
-
+        elif llm_model == const.LLAMA_NAME:
+            z_reject = get_z_prompts_openLM(dataset_name, const.LLAMA_NAME, text_prompts[dataset_name]['question_llama_reject'])
+            z_accept = []
+        elif llm_model == const.GPT2_NAME:
+            z_reject = get_z_prompts_openLM(dataset_name, const.GPT2_NAME, text_prompts[dataset_name]['question_openLM_reject'])
+            z_accept = get_z_prompts_openLM(dataset_name, const.GPT2_NAME, text_prompts[dataset_name]['question_openLM_accept'])
+        elif llm_model == const.T5_NAME:
+            z_reject = get_z_prompts_openLM(dataset_name, const.T5_NAME, text_prompts[dataset_name]['question_openLM_reject'])
+            z_accept = get_z_prompts_openLM(dataset_name, const.T5_NAME, text_prompts[dataset_name]['question_openLM_accept'])
+    print('z reject', z_reject)
+    print('z accept', z_accept)
     labels_text = MultiEnvDataset().dataset_dict[dataset_name]().get_labels()
     load_dir = f'features/{dataset_name}/{clip_model}'
 
@@ -216,6 +220,9 @@ if __name__ == '__main__':
     preds, logits = make_clip_preds(test_proj, label_emb)
     print("========= ROBOSHOT W/ QR Rejection =========")
     evaluate(dataset_name, preds, test_Y, logits)
+
+    if len(accept_emb) == 0:
+        exit()
 
     # --------- Accepting all true directions ------------
     true_vectors = accept_emb_all[:, 0, :] - accept_emb_all[:, 1, :]
