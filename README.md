@@ -1,6 +1,6 @@
 # Roboshot
 
-This repository contains the code implimentation of RoboShot (paper: Zero-Shot Robustification of Zero-Shot Models With Auxiliary Foundation Models).
+This repository contains the code implementation of RoboShot (paper: Zero-Shot Robustification of Zero-Shot Models With Auxiliary Foundation Models).
 
 <div style="width: 50%; height: 50%">
   
@@ -9,14 +9,14 @@ This repository contains the code implimentation of RoboShot (paper: Zero-Shot R
 </div>
 
 ### Downloading datasets: ###
-- WILDS datasets (Waterbirds, CelebA): The code enable automatic download of WILDS datasets (thanks to the amazing [WILDS benchmark package](https://wilds.stanford.edu/)!). No extra steps needed here!
+- WILDS datasets (Waterbirds, CelebA): The code enables automatic download of WILDS datasets (thanks to the amazing [WILDS benchmark package](https://wilds.stanford.edu/)!). No extra steps needed here!
 - DomainBed datasets (PACS, VLCS): Download the datasets from [DomainBed suit](https://github.com/facebookresearch/DomainBed)
 - CXR:
 
 ### Environment setup: ###
 1. Create new conda environment 
 ```bash
-conda create -n roboshor python=3.7
+conda create -n roboshot python=3.7
 conda activate roboshot
 ```
 2. Install required packages
@@ -36,7 +36,7 @@ bash env.sh
 ### Running the code ###
 Now we are ready to run the code!
 ```bash
-python run.pt -d=waterbirds
+python run.py -d=waterbirds
 ```
 Flags:
 - `-d`: select dataset (waterbirds/celebA/pacs/cxr/vlcs)
