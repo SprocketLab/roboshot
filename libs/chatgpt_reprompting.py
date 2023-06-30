@@ -10,6 +10,7 @@ import utils.const as const
 
 import argparse
 from tqdm import tqdm
+import numpy as np
 
 def request(prompt, max_tokens=200):
     response = openai.Completion.create(
@@ -81,13 +82,13 @@ def items_to_list(items_str, dataset_name, verbose):
     for i, key in enumerate(keys):
         if len(values[i]) ==1:
             continue
-        # if values[i][0] == values[i][1]:
-        #     continue
-        # if dataset_name == 'waterbirds':
-        #     verification_prompt = f'Answer with a yes/no. Can we see {key} of {text_prompts[dataset_name]["object"]} in a photograph?'
-        #     answer1 = request(verification_prompt, max_tokens=3)
-        #     if 'yes' in answer1.lower():
-        #         kv_dict[key] = values[i]
+        if values[i][0] == values[i][1]:
+            continue
+        if dataset_name == 'waterbirds':
+            verification_prompt = f'Answer with a yes/no. Can we see {key} of {text_prompts[dataset_name]["object"]} in a photograph?'
+            answer1 = request(verification_prompt, max_tokens=3)
+            if 'yes' in answer1.lower():
+                kv_dict[key] = values[i]
         # else:
         kv_dict[key] = list(set(values[i]))
     if len(kv_dict) == 0:
@@ -105,6 +106,8 @@ def items_to_list(items_str, dataset_name, verbose):
 def construct_final_prompt(kv_dict, dataset_name):
     prompts = []
     for k,v in kv_dict.items():
+        if len(v) > 2:
+            v = np.random.choice(v, 2).tolist()
         if '[TEMPLATE]' not in text_prompts[dataset_name]["prompt_template"]:
             for i in range(len(v)):
                 # if (text_prompts[dataset_name]['labels_pure'] and text_prompts[dataset_name]['forbidden_key']) and (k not in text_prompts[dataset_name]['labels_pure']) and (k not in text_prompts[dataset_name]['forbidden_key']):

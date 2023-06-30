@@ -119,7 +119,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset', type=str, required=True)
     parser.add_argument('-clip', '--clip_model', type=str, default='openclip_vitl14')
     parser.add_argument('-lm', '--llm', type=str, default='chatgpt')
-    parser.add_argument('-reuse', '--reuse_cached_concepts', type=bool, default=True)
+    parser.add_argument('-reuse', '--reuse_cached_concepts', action='store_true')
     args = parser.parse_args()
     
     dataset_name = args.dataset
@@ -133,9 +133,18 @@ if __name__ == '__main__':
     labels = text_prompts[dataset_name]['labels']
     max_tokens = 100
     n_paraphrases = 0
-
-    if reuse_cached_concepts:
+    print('reuse', reuse_cached_concepts)
+    if reuse_cached_concepts == True:
         z_reject, z_accept = get_cached_concept(dataset_name)
+    else:
+        print('here', reuse_cached_concepts)
+        if llm_model == const.CHATGPT_NAME:
+            z_reject = get_z_prompts(dataset_name, text_prompts[dataset_name]['question_reject'])
+            z_accept = get_z_prompts(dataset_name, text_prompts[dataset_name]['question_accept'])
+
+    # print(z_reject)
+    # print(z_accept)
+    # exit()
 
     labels_text = MultiEnvDataset().dataset_dict[dataset_name]().get_labels()
     load_dir = f'features/{dataset_name}/{clip_model}'
