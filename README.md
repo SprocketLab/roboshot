@@ -1,6 +1,6 @@
 # Roboshot
 
-This repository contains the code implementation of RoboShot (paper: Zero-Shot Robustification of Zero-Shot Models With Auxiliary Foundation Models).
+This repository contains the code implementation of ICLR 2024 paper: Zero-Shot Robustification of Zero-Shot Models (RoboShot) [paper link](https://arxiv.org/pdf/2309.04344).
 
 <div style="width: 50%; height: 50%">
   
