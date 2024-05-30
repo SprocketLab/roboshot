@@ -19,7 +19,7 @@ import utils.const as const
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def get_model(model_name):
-    if modesl_name == const.CLIP_BASE_NAME:
+    if model_name == const.CLIP_BASE_NAME:
         clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
         clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
     elif model_name == const.CLIP_ALIGN_NAME:
